@@ -1,219 +1,198 @@
 (function(Scratch) {
-'use strict';
+    'use strict';
 
-let pyodide = null;
-let extensionInstance = null;
+    let pyodide = null;
+    let extensionInstance = null;
 
-// --- Extension Class Definition ---
-class PythonRunnerExtension {
-getInfo() {
-return {
-id: 'pythonrunner',
-name: 'Python Runner',
-color1: '#337a7a',
-// Corrected menuIconURI: A simple white 'P' icon
-menuIconURI: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3My5vcmcvMjAwMC9zdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik0wIDBoMjR2MjRIMHoiLz48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMTEgMTdIMTRWMTRIMTFWMTd6bTYgLTJIMTBBMCAwIDAgMCAxMCAwSDE3QTAgMCAwIDAgMTcgMTV6bS00LTZoLTNWMTFoM1Y5em0zIDJIMTBBMCAwIDAgMCAxMCA3SDE2QTAgMCAwIDAgMTYgOXoiLz48L3N2Zz4=',
-blocks: [
-// Block 1: Run Python Code
-{
-opcode: 'runPythonCode',
-blockType: Scratch.BlockType.REPORTER,
-text: 'run Python code [CODE]',
-arguments: {
-CODE: {
-type: Scratch.ArgumentType.STRING,
-defaultValue: 'result = 5 + 5\nprint(result)'
-}
-}
-},
-// Block 2: Get Console Output
-{
-opcode: 'getPyConsoleOutput',
-blockType: Scratch.BlockType.REPORTER,
-text: 'last console output'
-},
-// Block 3: Set Python Variable (Stack block)
-{
-opcode: 'setPythonVariable',
-blockType: Scratch.BlockType.COMMAND,
-text: 'set Python variable [NAME] to [VALUE]',
-arguments: {
-NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'my_var' },
-VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: '0' }
-}
-},
-// Block 4: Get Python Variable (Reporter block)
-{
-opcode: 'getPythonVariable',
-blockType: Scratch.BlockType.REPORTER,
-text: 'get Python variable [NAME]',
-arguments: {
-NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'my_var' }
-}
-},
-// Block 5: Install a PyPI Package (Command block)
-{
-opcode: 'installPackage',
-blockType: Scratch.BlockType.COMMAND,
-text: 'install PyPI package [PACKAGE]',
-arguments: {
-PACKAGE: { type: Scratch.ArgumentType.STRING, defaultValue: 'numpy' }
-}
-},
-// Block 6: Run Function with Arguments (Reporter block)
-{
-opcode: 'runPythonFunction',
-blockType: Scratch.BlockType.REPORTER,
-text: 'run Python function [NAME] with args [ARGS]',
-arguments: {
-NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'add_numbers' },
-ARGS: { type: Scratch.ArgumentType.STRING, defaultValue: '[]' } // Default to empty JSON array
-}
-},
-// Block 7: Clear Console Output (Command block)
-{
-opcode: 'clearPyConsoleOutput',
-blockType: Scratch.BlockType.COMMAND,
-text: 'clear console output'
-},
-]
-};
-}
+    class PythonRunnerExtension {
+        getInfo() {
+            return {
+                id: 'pythonrunner',
+                name: 'Python Communicator',
+                color1: '#337a7a',
+                menuIconURI: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik0wIDBoMjR2MjRIMHoiLz48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMTEgMTdIMTRWMTRIMTFWMTd6bTYgLTJIMTBBMCAwIDAgMCAxMCAwSDE3QTAgMCAwIDAgMTcgMTV6bS00LTZoLTNWMTFoM1Y5em0zIDJIMTBBMCAwIDAgMCAxMCA3SDE2QTAgMCAwIDAgMTYgOXoiLz48L3N2Zz4=',
+                blocks: [
+                    {
+                        opcode: 'runPythonCode',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'Ask Python to run script: [CODE]',
+                        arguments: {
+                            CODE: {
+                                type: Scratch.ArgumentType.STRING,
+                                defaultValue: 'result = 5 + 5\nprint(result)'
+                            }
+                        }
+                    },
+                    {
+                        opcode: 'getPyConsoleOutput',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'Hear the last thing Python said',
+                    },
+                    {
+                        opcode: 'setPythonVariable',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'Tell Python variable [NAME] is now [VALUE]',
+                        arguments: {
+                            NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'my_var' },
+                            VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: '0' }
+                        }
+                    },
+                    {
+                        opcode: 'getPythonVariable',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'Listen for Python variable [NAME]',
+                        arguments: {
+                            NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'my_var' }
+                        }
+                    },
+                    {
+                        opcode: 'installPackage',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'Add the knowledge package: [PACKAGE]',
+                        arguments: {
+                            PACKAGE: { type: Scratch.ArgumentType.STRING, defaultValue: 'numpy' }
+                        }
+                    },
+                    {
+                        opcode: 'runPythonFunction',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'Ask Python function [NAME] to use arguments: [ARGS]',
+                        arguments: {
+                            NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'add_numbers' },
+                            ARGS: { type: Scratch.ArgumentType.STRING, defaultValue: '[]' }
+                        }
+                    },
+                    {
+                        opcode: 'clearPyConsoleOutput',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'Clear Python\'s memory of past speech',
+                    },
+                ]
+            };
+        }
 
-// --- Block Implementations ---
+        _lastOutput = ""; 
 
-// Variable to store console output
-_lastOutput = "";
+        async runPythonCode(args) {
+            const code = args.CODE;
+            if (pyodide === null) await initializePyodide();
+            if (pyodide === null) return "Error: Pyodide not loaded.";
 
-async runPythonCode(args) {
-const code = args.CODE;
-if (pyodide === null) await initializePyodide();
-if (pyodide === null) return "Error: Pyodide not loaded.";
+            try {
+                this._lastOutput = ""; 
+                let result = await pyodide.runPythonAsync(code, {
+                    stdout: line => { this._lastOutput += line + '\n'; },
+                    stderr: line => { this._lastOutput += "ERROR: " + line + '\n'; }
+                });
 
-try {
-this._lastOutput = "";
-let result = await pyodide.runPythonAsync(code, {
-stdout: line => { this._lastOutput += line + '\n'; },
-stderr: line => { this._lastOutput += "ERROR: " + line + '\n'; }
-});
+                return String(result !== undefined ? result : "Code executed (no return value)");
+            } catch (error) {
+                console.error("Python runtime error:", error);
+                this._lastOutput += `ERROR: ${error.message}\n`;
+                return `Error: ${error.message.substring(0, 50)}...`;
+            }
+        }
 
-return String(result !== undefined ? result : "Code executed (no return value)");
-} catch (error) {
-console.error("Python runtime error:", error);
-this._lastOutput += `ERROR: ${error.message}\n`;
-return `Error: ${error.message.substring(0, 50)}...`;
-}
-}
+        getPyConsoleOutput() {
+            return this._lastOutput;
+        }
 
-getPyConsoleOutput() {
-return this._lastOutput;
-}
+        clearPyConsoleOutput() {
+            this._lastOutput = "";
+        }
 
-clearPyConsoleOutput() {
-this._lastOutput = "";
-}
+        async setPythonVariable(args) {
+            if (pyodide === null) await initializePyodide();
+            if (pyodide === null) return; 
 
-async setPythonVariable(args) {
-if (pyodide === null) await initializePyodide();
-if (pyodide === null) return;
+            const varName = args.NAME;
+            const varValue = args.VALUE;
 
-const varName = args.NAME;
-const varValue = args.VALUE;
+            try {
+                await pyodide.runPythonAsync(`
+                    import json
+                    ${varName} = json.loads('''${JSON.stringify(varValue)}''')
+                `);
+            } catch (e) {
+                console.error("Error setting Python variable:", e);
+                this._lastOutput += `ERROR setting ${varName}: ${e.message}\n`;
+            }
+        }
 
-try {
-// Use JSON to safely pass data types from JS to Python
-await pyodide.runPythonAsync(`
-import json
-${varName} = json.loads('''${JSON.stringify(varValue)}''')
-`);
-} catch (e) {
-console.error("Error setting Python variable:", e);
-this._lastOutput += `ERROR setting ${varName}: ${e.message}\n`;
-}
-}
+        getPythonVariable(args) {
+            if (pyodide === null) return "Python not loaded.";
 
-getPythonVariable(args) {
-if (pyodide === null) return "Python not loaded.";
+            const varName = args.NAME;
+            try {
+                const value = pyodide.globals.get(varName);
+                if (value === undefined) return `Variable '${varName}' not found`;
+                return String(value);
+            } catch (e) {
+                console.error("Error getting Python variable:", e);
+                return `Error getting ${varName}`;
+            }
+        }
 
-const varName = args.NAME;
-try {
-// Get the variable from Python globals and return its string representation
-const value = pyodide.globals.get(varName);
-if (value === undefined) return `Variable '${varName}' not found`;
-return String(value);
-} catch (e) {
-console.error("Error getting Python variable:", e);
-return `Error getting ${varName}`;
-}
-}
+        async installPackage(args) {
+            if (pyodide === null) await initializePyodide();
+            if (pyodide === null) return; 
 
-async installPackage(args) {
-if (pyodide === null) await initializePyodide();
-if (pyodide === null) return;
+            const packageName = args.PACKAGE;
+            try {
+                await pyodide.loadPackage(packageName);
+                this._lastOutput += `Package '${packageName}' installed.\n`;
+            } catch (e) {
+                console.error("Error installing package:", e);
+                this._lastOutput += `ERROR installing package ${packageName}: ${e.message}\n`;
+            }
+        }
 
-const packageName = args.PACKAGE;
-try {
-// Load the package from PyPI index
-await pyodide.loadPackage(packageName);
-this._lastOutput += `Package '${packageName}' installed.\n`;
-} catch (e) {
-console.error("Error installing package:", e);
-this._lastOutput += `ERROR installing package ${packageName}: ${e.message}\n`;
-}
-}
+        async runPythonFunction(args) {
+            if (pyodide === null) await initializePyodide();
+            if (pyodide === null) return "Error: Pyodide not loaded.";
 
-async runPythonFunction(args) {
-if (pyodide === null) await initializePyodide();
-if (pyodide === null) return "Error: Pyodide not loaded.";
+            const funcName = args.NAME;
+            const funcArgsJson = args.ARGS;
 
-const funcName = args.NAME;
-const funcArgsJson = args.ARGS;
+            try {
+                const pyFunction = pyodide.globals.get(funcName);
+                if (pyFunction === undefined) return `Function '${funcName}' not found`;
 
-try {
-// Load the function from Python globals
-const pyFunction = pyodide.globals.get(funcName);
-if (pyFunction === undefined) return `Function '${funcName}' not found`;
+                const jsArgs = JSON.parse(funcArgsJson);
 
-// Convert JSON arguments (from PenguinMod string input) into JS array
-const jsArgs = JSON.parse(funcArgsJson);
+                const result = pyFunction(...jsArgs);
+                return String(result);
 
-// Call the Python function with the arguments
-const result = pyFunction(...jsArgs);
-return String(result);
+            } catch (e) {
+                console.error("Error running Python function:", e);
+                this._lastOutput += `ERROR running function ${funcName}: ${e.message}\n`;
+                return `Error: ${e.message.substring(0, 50)}...`;
+            }
+        }
+    }
 
-} catch (e) {
-console.error("Error running Python function:", e);
-this._lastOutput += `ERROR running function ${funcName}: ${e.message}\n`;
-return `Error: ${e.message.substring(0, 50)}...`;
-}
-}
-}
+    async function initializePyodide() {
+        if (pyodide !== null) return; 
+        
+        const script = document.createElement('script');
+        script.src = "cdn.jsdelivr.net"; 
+        document.head.appendChild(script);
 
-// --- Pyodide Initialization Logic ---
+        await new Promise(resolve => {
+            script.onload = resolve;
+            if (window.loadPyodide) resolve(); 
+        });
 
-async function initializePyodide() {
-if (pyodide !== null) return;
-
-console.log("Loading Pyodide (Python runtime)... This might take a moment.");
-try {
-const script = document.createElement('script');
-script.src = 'cdn.jsdelivr.net';
-document.head.appendChild(script);
-
-await new Promise(resolve => script.onload = resolve);
-pyodide = await loadPyodide();
-console.log("Pyodide successfully loaded.");
-
-} catch (error) {
-console.error("Failed to load Pyodide:", error);
-if (Scratch.alert) {
-Scratch.alert("Error loading Python environment. Check browser console.");
-}
-}
-}
-
-// --- Registration ---
-extensionInstance = new PythonRunnerExtension();
-initializePyodide();
-Scratch.extensions.register(extensionInstance);
+        try {
+            pyodide = await window.loadPyodide({
+                indexURL: "cdn.jsdelivr.net",
+            });
+        } catch (error) {
+            if (extensionInstance) {
+                extensionInstance._lastOutput += `FATAL ERROR: Could not load Pyodide. Check internet connection. ${error.message}\n`;
+            }
+        }
+    }
+    
+    Scratch.extensions.register(new PythonRunnerExtension());
 })(Scratch);
